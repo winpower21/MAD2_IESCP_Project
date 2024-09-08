@@ -13,6 +13,8 @@ class Users(db.Model):
     usersname = db.Column(db.String, unique=True, nullable=False)
     email = db.Comumn(db.String, unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
+    flag = db.Column(db.String, nullable=False)
+    fs_uniquifier = db.Column(db.String(), nullable=False)
     type = db.Column(db.ChoiceType(
         UserType, impl=db.Integer()), nullable=False)
     influencer_id = db.relationship(
