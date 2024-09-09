@@ -1,31 +1,49 @@
-import enum
-from application.database import db
+from sqlalchemy import ForeignKey
+from application.extensions import db
+from flask_security.core import UserMixin, RoleMixin
+from flask_security.models import fsqla_v3 as fsq
+
+fsq.FsModels.set_db_info(db)
 
 
-class UserType(enum.Enum):
-    admin = 0
-    influencer = 1
-    sponsor = 2
 
-
-class Users(db.Model):
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    usersname = db.Column(db.String, unique=True, nullable=False)
-    email = db.Comumn(db.String, unique=True, nullable=False)
+    username = db.Column(db.String, unique=True, nullable=False)
+    email = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
-    flag = db.Column(db.String, nullable=False)
-    fs_uniquifier = db.Column(db.String(), nullable=False)
-    type = db.Column(db.ChoiceType(
-        UserType, impl=db.Integer()), nullable=False)
-    influencer_id = db.relationship(
-        'Influencers',  cascade='all,delete', backref='users')
-    sponsor_id = db.relationship(
-        'Sponsors',  cascade='all,delete', backref='users')
+    active = db.Column(db.Boolean, nullable=False)
+    fs_uniquifier = db.Column(db.String)
+    roles = db.relationship('Role', secondary='user_roles') # type: ignore
+    i_id = db.relationship(
+        'Influencers', cascade='all,delete', backref='user')
+    s_id = db.relationship('Sponsors', cascade='all,delete', backref='user')
+
+
+class Role(db.Model, RoleMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+
+
+class UserRoles(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
+
+
+class Sponsors(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    u_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    name = db.Column(db.String, nullable=False, unique=True)
+    industry = db.Column(db.String, nullable=False)
+    category = db.Column(db.String, nullable=False)
+    c_id = db.relationship(
+        'Campaigns', cascade='all,delete', backref='sponsors')
 
 
 class Influencers(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    u_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    u_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     fName = db.Column(db.String(28), nullable=False)
     lName = db.Column(db.String(28), nullable=False)
     age = db.Column(db.Integer, nullable=False)
@@ -36,27 +54,13 @@ class Influencers(db.Model):
     youtube = db.Column(db.String, unique=True)
     x = db.Column(db.String, unique=True)
     threads = db.Column(db.String, unique=True)
-
-
-class Spoonsors(db.Model):
-    CATEGORY = [
-        ('individual', 'Individual'),
-        ('company', 'Company')
-    ]
-    id = db.Column(db.Integer, primary_key=True)
-    u_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    name = db.Column(db.String, nullable=False, unique=True)
-    industry = db.Column(db.String, nullable=False)
-    category = db.Column(db.ChoiceType(CATEGORY), nullable=False)
-    s_campaign = db.relationship(
-        'Campaign', cascade='all,delete', backref='sponsors')
-    s_adrequest = db.relationship(
-        'AdRequests', cascade='all,delete', backref='sponsors')
+    job_id = db.relationship(
+        'Jobs', cascade='all,delete', backref='influencers')
 
 
 class Campaigns(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    sponsor_id = db.Column(db.String, db.ForeignKey('sponsors.id'))
+    s_id = db.Column(db.Integer, db.ForeignKey("sponsors.id"))
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
     start_date = db.Column(db.Date, nullable=False)
@@ -64,16 +68,24 @@ class Campaigns(db.Model):
     budget = db.Column(db.Integer, nullable=False)
     visibility = db.Column(db.String, nullable=False)
     goals = db.Column(db.String, nullable=False)
-    ad_requests = db.relationship(
-        'AdRequests', cascade='all,delete', backref='sponsors')
+    status = db.Column(db.String, nullable=False)
+    ad_request = db.relationship(
+        'AdRequests', cascade='all,delete', backref='campaigns')
 
 
 class AdRequests(db.Model):
+    __tablename__ = 'adrequests'
     id = db.Column(db.Integer, primary_key=True)
-    influencer_id = db.Column(db.Integer, db.ForeignKey('influencers.id'))
-    sponsor_id = db.Column(db.Integer, db.ForeignKey('sponsors.id'))
-    campaign_id = db.Column(db.Integer, db.ForeignKey('campaigns.id'))
+    c_id = db.Column(db.Integer, db.ForeignKey('campaigns.id'))
     messages = db.Column(db.String, nullable=True)
     requirements = db.Column(db.String, nullable=True)
     payment_amt = db.Column(db.Integer, nullable=False)
-    status = db.Column(db.String, default='Pending')
+    status = db.Column(db.String, default="Pending")
+    job_id = db.relationship(
+        'Jobs', cascade='all,delete', backref='adrequests')
+
+
+class Jobs(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ad_id = db.Column(db.Integer, db.ForeignKey('adrequests.id'))
+    i_id = db.Column(db.Integer, db.ForeignKey('influencers.id'))
