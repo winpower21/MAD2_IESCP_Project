@@ -1,10 +1,8 @@
-from sqlalchemy import ForeignKey
 from application.extensions import db
 from flask_security.core import UserMixin, RoleMixin
 from flask_security.models import fsqla_v3 as fsq
 
 fsq.FsModels.set_db_info(db)
-
 
 
 class User(db.Model, UserMixin):
@@ -14,7 +12,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String, nullable=False)
     active = db.Column(db.Boolean, nullable=False)
     fs_uniquifier = db.Column(db.String)
-    roles = db.relationship('Role', secondary='user_roles') # type: ignore
+    roles = db.relationship('Role', secondary='user_roles')  # type: ignore
     i_id = db.relationship(
         'Influencers', cascade='all,delete', backref='user')
     s_id = db.relationship('Sponsors', cascade='all,delete', backref='user')
@@ -26,7 +24,7 @@ class Role(db.Model, RoleMixin):
 
 
 class UserRoles(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
+    id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
 

@@ -1,6 +1,7 @@
 from flask import Flask
 from application.extensions import db, security
 from application.create_initial_data import create_data
+from application.views import create_view
 
 
 def create_app():
@@ -14,17 +15,20 @@ def create_app():
     app.config['SECURITY_REGISTERABLE'] = True
     # to send automatic registration email to user
     app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
+
     db.init_app(app)
-    app.app_context().push()
     with app.app_context():
         from application.models import User, Role
         from flask_security.datastore import SQLAlchemyUserDatastore
+
         user_datastore = SQLAlchemyUserDatastore(db, User, Role)
         security.init_app(app, user_datastore)
-        
+
         db.create_all()
         create_data(user_datastore)
-        
+
+    create_view(app, user_datastore)
+
     return app
 
 
