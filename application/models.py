@@ -60,13 +60,14 @@ class Campaigns(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     s_id = db.Column(db.Integer, db.ForeignKey("sponsors.id"))
     name = db.Column(db.String, nullable=False)
-    description = db.Column(db.String, nullable=False)
+    description = db.Column(db.Text, nullable=False)
     start_date = db.Column(db.Date, nullable=False)
     duration = db.Column(db.Integer, nullable=False)
     budget = db.Column(db.Integer, nullable=False)
     visibility = db.Column(db.String, nullable=False)
     goals = db.Column(db.String, nullable=False)
     status = db.Column(db.String, nullable=False)
+    is_approved = db.Column(db.Boolean, default=False)
     ad_request = db.relationship(
         'AdRequests', cascade='all,delete', backref='campaigns')
 

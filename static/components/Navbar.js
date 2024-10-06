@@ -13,10 +13,13 @@ const Navbar = {
                         <router-link to='/' class="nav-link">Home</router-link>
                     </li>
                     <li class="nav-item">
-                        <router-link to='/login' class="nav-link">Login</router-link>
+                        <router-link to='/user-login' class="nav-link">Login</router-link>
                     </li>
                     <li class="nav-item">
                         <router-link to='/register' class="nav-link">Register</router-link>
+                    </li>
+                    <li class="nav-item">
+                        <a :href='logoutURL' class="nav-link">Logout</a>
                     </li>
                 </ul>
                 <form class="d-flex" role="search">
@@ -26,7 +29,14 @@ const Navbar = {
             </div>
         </div>
     </nav>
-    `
+    `,
+    data() {
+        return {
+            logoutURL: window.location.origin + "/logout"
+        };
+    }
 }
+
+
 
 export default Navbar

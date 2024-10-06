@@ -16,6 +16,13 @@ def create_app():
     # to send automatic registration email to user
     app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
 
+    app.config['SECURITY_TOKEN_AUTHENTICATION_HEADER'] = 'Authentication-Token'
+    app.config['SECURITY_TOKEN_MAX_AGE'] = 3600  # 1hr
+    app.config['SECURITY_LOGIN_WITHOUT_CONFIRMATION'] = True
+
+    # cache config
+    app.config["DEBUG"] = True         # some Flask specific configs
+
     db.init_app(app)
     with app.app_context():
         from application.models import User, Role
@@ -27,6 +34,11 @@ def create_app():
         db.create_all()
         create_data(user_datastore)
 
+    # disable CSRF security
+    app.config['WTF_CSRF_CHECK_DEFAULT'] = False
+    app.config['SECURITY_CSRF_PROTECT_MECHANISHMS'] = []
+    app.config['SECURITY_CSRF_IGNORE_UNAUTH_ENDPOINTS'] = True
+
     create_view(app, user_datastore)
 
     return app
@@ -36,4 +48,4 @@ app = create_app()
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=8000)
